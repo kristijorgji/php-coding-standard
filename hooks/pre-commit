@@ -1,26 +1,51 @@
 #!/usr/bin/env bash
-# Pre-commit hook delegating script
-# Executes all scripts in pre-commit.d/ directory in alphabetical order
-# Stops execution and exits with non-zero status if any hook fails
+# Pre-commit hook delegating script.
+# Runs executables under git_hooks/installed/<vendor>/<package>/pre-commit.d/
+# Order: LC_ALL=C sort by basename, then full path. Stops on first failure.
 
 exec 1>&2
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOKS_DIR="$HOOK_DIR/pre-commit.d"
+INSTALLED_DIR="$HOOK_DIR/installed"
 
-if [ ! -d "$HOOKS_DIR" ]; then
-	echo "ERROR: pre-commit.d directory not found: $HOOKS_DIR"
+if [ ! -d "$INSTALLED_DIR" ]; then
+	echo "ERROR: installed hooks directory not found: $INSTALLED_DIR"
+	echo "Run: vendor/bin/kj-php-coding-standard-install-hooks"
 	exit 1
 fi
 
-for hook in "$HOOKS_DIR"/*; do
-	[ ! -f "$hook" ] && continue
-	[ ! -x "$hook" ] && continue
+hook_list=""
+shopt -s nullglob
+for hooks_dir in "$INSTALLED_DIR"/*/*/pre-commit.d; do
+	[ -d "$hooks_dir" ] || continue
+	for hook in "$hooks_dir"/*; do
+		[ -f "$hook" ] || continue
+		[ -x "$hook" ] || continue
+		base="$(basename "$hook")"
+		hook_list="${hook_list}${base}"$'\t'"${hook}"$'\n'
+	done
+done
+shopt -u nullglob
 
+if [ -z "$hook_list" ]; then
+	echo "ERROR: no executable hooks under $INSTALLED_DIR/*/pre-commit.d/"
+	echo "Run: vendor/bin/kj-php-coding-standard-install-hooks"
+	exit 1
+fi
+
+count=0
+while IFS=$'\t' read -r _base hook; do
+	[ -n "${hook:-}" ] || continue
+	count=$((count + 1))
 	if ! "$hook"; then
-		echo "Pre-commit hook failed: $(basename "$hook")"
+		echo "Pre-commit hook failed: $(basename "$hook") ($hook)"
 		exit 1
 	fi
-done
+done < <(printf '%s' "$hook_list" | LC_ALL=C sort)
+
+if [ "$count" -eq 0 ]; then
+	echo "ERROR: no executable hooks under $INSTALLED_DIR/*/pre-commit.d/"
+	exit 1
+fi
 
 exit 0

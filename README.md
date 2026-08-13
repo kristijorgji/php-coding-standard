@@ -34,6 +34,24 @@ Available hooks: `01-markdownlint`, `02-phpunit-related`, `03-code-analyse`, `04
 vendor/bin/kj-php-coding-standard-install-hooks
 ```
 
+Install layout (gitignore the whole tree in the consumer):
+
+```text
+git_hooks/
+  pre-commit
+  installed/
+    kristijorgji/
+      php-coding-standard/
+        lib/
+        pre-commit.d/
+```
+
+```gitignore
+/git_hooks/
+```
+
+The root `pre-commit` runs every executable under `installed/<vendor>/<package>/pre-commit.d/`, ordered by basename then path (`01-` before `02-` across packages).
+
 Re-run after package upgrades. Optional Makefile:
 
 ```makefile
