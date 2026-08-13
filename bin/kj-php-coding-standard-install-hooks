@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Install shared git hooks from kristijorgji/php-coding-standard into the consumer repo.
 # Requires .kj-php-coding-standard.env with KJ_PHP_CS_HOOKS at the repo root.
+#
+# Layout:
+#   git_hooks/pre-commit
+#   git_hooks/installed/kristijorgji/php-coding-standard/{lib,pre-commit.d}/
 
 set -euo pipefail
 
@@ -39,12 +43,18 @@ if [ -z "${KJ_PHP_CS_HOOKS:-}" ]; then
 fi
 
 CATALOG="01-markdownlint 02-phpunit-related 03-code-analyse 04-postman-smoke-lint"
+PKG_HOOKS_NS="kristijorgji/php-coding-standard"
+HOOKS_ROOT="$REPO_ROOT/git_hooks"
+HOOKS_PKG="$HOOKS_ROOT/installed/$PKG_HOOKS_NS"
 
-HOOKS_DEST="$REPO_ROOT/git_hooks"
-mkdir -p "$HOOKS_DEST/pre-commit.d" "$HOOKS_DEST/lib"
+mkdir -p "$HOOKS_PKG/pre-commit.d" "$HOOKS_PKG/lib"
 
-cp "$PACKAGE_ROOT/hooks/pre-commit" "$HOOKS_DEST/pre-commit"
-cp "$PACKAGE_ROOT/hooks/lib/kj-php-cs-env.sh" "$HOOKS_DEST/lib/kj-php-cs-env.sh"
+# Remove legacy flat / un-namespaced install layouts from older package versions.
+rm -rf "$HOOKS_ROOT/lib" "$HOOKS_ROOT/pre-commit.d"
+rm -rf "$HOOKS_ROOT/installed/lib" "$HOOKS_ROOT/installed/pre-commit.d"
+
+cp "$PACKAGE_ROOT/hooks/pre-commit" "$HOOKS_ROOT/pre-commit"
+cp "$PACKAGE_ROOT/hooks/lib/kj-php-cs-env.sh" "$HOOKS_PKG/lib/kj-php-cs-env.sh"
 
 hook_enabled() {
 	local needle="$1"
@@ -63,7 +73,7 @@ hook_enabled() {
 
 for name in $CATALOG; do
 	src="$PACKAGE_ROOT/hooks/pre-commit.d/$name"
-	dst="$HOOKS_DEST/pre-commit.d/$name"
+	dst="$HOOKS_PKG/pre-commit.d/$name"
 	if hook_enabled "$name"; then
 		if [ ! -f "$src" ]; then
 			echo "ERROR: Catalog hook missing in package: $name"
@@ -80,7 +90,7 @@ for name in $CATALOG; do
 	fi
 done
 
-chmod +x "$HOOKS_DEST/pre-commit" "$HOOKS_DEST/lib/kj-php-cs-env.sh"
+chmod +x "$HOOKS_ROOT/pre-commit" "$HOOKS_PKG/lib/kj-php-cs-env.sh"
 
 (
 	cd "$REPO_ROOT"
@@ -88,4 +98,5 @@ chmod +x "$HOOKS_DEST/pre-commit" "$HOOKS_DEST/lib/kj-php-cs-env.sh"
 )
 
 echo "Done. core.hooksPath=./git_hooks (package: $PACKAGE_ROOT)"
+echo "Install root: git_hooks/installed/$PKG_HOOKS_NS"
 echo "Verify with: make verify-hooks"

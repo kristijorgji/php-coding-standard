@@ -18,21 +18,22 @@ if [ ! -x git_hooks/pre-commit ]; then
 	exit 1
 fi
 
-if [ ! -d git_hooks/pre-commit.d ]; then
-	echo "FAIL: git_hooks/pre-commit.d missing"
+PKG_DIR="git_hooks/installed/kristijorgji/php-coding-standard"
+if [ ! -d "$PKG_DIR/pre-commit.d" ]; then
+	echo "FAIL: $PKG_DIR/pre-commit.d missing"
 	exit 1
 fi
 
 count=0
-for f in git_hooks/pre-commit.d/*; do
+for f in "$PKG_DIR"/pre-commit.d/*; do
 	[ -f "$f" ] || continue
 	[ -x "$f" ] || { echo "FAIL: $f not executable"; exit 1; }
 	count=$((count + 1))
 done
 
 if [ "$count" -eq 0 ]; then
-	echo "FAIL: no hooks in git_hooks/pre-commit.d"
+	echo "FAIL: no hooks in $PKG_DIR/pre-commit.d"
 	exit 1
 fi
 
-echo "OK: core.hooksPath=$HOOKS_PATH ($count hook(s) in pre-commit.d)"
+echo "OK: core.hooksPath=$HOOKS_PATH ($count hook(s) in $PKG_DIR/pre-commit.d)"

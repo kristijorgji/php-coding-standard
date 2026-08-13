@@ -6,7 +6,7 @@
 exec 1>&2
 
 HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../../../../.." && pwd)"
 PKG_DIR="$REPO_ROOT/dev-tools/postman-smoke"
 
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM || true)
