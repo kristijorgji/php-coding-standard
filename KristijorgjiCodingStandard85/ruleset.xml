@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="KristijorgjiCodingStandard85">
+    <description>Additive Kristijorgji rules for PHP 8.5 apps (use with KristijorgjiCodingStandard; does not replace the base standard)</description>
+
+    <rule ref="SlevomatCodingStandard.Classes.BackedEnumTypeSpacing" />
+    <rule ref="SlevomatCodingStandard.Classes.EnumCaseSpacing" />
+    <rule ref="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing" />
+    <rule ref="SlevomatCodingStandard.Attributes.DisallowAttributesJoining" />
+    <rule ref="SlevomatCodingStandard.TypeHints.DisallowArrayTypeHintSyntax" />
+</ruleset>
