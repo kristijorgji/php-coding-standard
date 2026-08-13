@@ -2,6 +2,7 @@
     "name": "kristijorgji/php-coding-standard",
     "description": "PHPCS house coding standard (Slevomat-based) plus optional shared git pre-commit hooks",
     "type": "phpcodesniffer-standard",
+    "version": "0.1.0",
     "license": "MIT",
     "authors": [
         {
