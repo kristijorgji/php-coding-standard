@@ -2,6 +2,14 @@
 
 PHPCS house style (Slevomat-based) plus a shared git pre-commit hook catalog.
 
+## Table of contents
+
+- [Install (consumer app)](#install-consumer-app)
+  - [PHPCS](#phpcs)
+  - [Git hooks](#git-hooks)
+- [Multi-PHP](#multi-php)
+- [License](#license)
+
 ## Install (consumer app)
 
 ```bash
