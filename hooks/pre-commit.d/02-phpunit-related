@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# Pre-commit: related PHPUnit for staged PHP files.
+# Soft-skips if PHPUnit / Docker are unavailable.
+
+exec 1>&2
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+# shellcheck disable=SC1091
+source "$HOOK_DIR/../lib/kj-php-cs-env.sh"
+kj_php_cs_load_env "$REPO_ROOT"
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM || true)
+
+if [ -z "$STAGED_FILES" ]; then
+	exit 0
+fi
+
+TEST_FILES=()
+
+while IFS= read -r file; do
+	[ -z "$file" ] && continue
+
+	if [[ "$file" == tests/unit/*Test.php ]] && [ -f "$REPO_ROOT/$file" ]; then
+		TEST_FILES+=("$file")
+		continue
+	fi
+
+	if [[ "$file" == app/* ]] && [[ "$file" == *.php ]]; then
+		rel="${file#app/}"
+		rel_no_ext="${rel%.php}"
+		candidate="tests/unit/app/${rel_no_ext}Test.php"
+		if [ -f "$REPO_ROOT/$candidate" ]; then
+			TEST_FILES+=("$candidate")
+		fi
+	fi
+done <<< "$STAGED_FILES"
+
+if [ ${#TEST_FILES[@]} -eq 0 ]; then
+	exit 0
+fi
+
+UNIQUE_TESTS=()
+while IFS= read -r t; do
+	[ -n "$t" ] && UNIQUE_TESTS+=("$t")
+done < <(printf '%s\n' "${TEST_FILES[@]}" | sort -u)
+
+if [ ${#UNIQUE_TESTS[@]} -eq 0 ]; then
+	exit 0
+fi
+
+echo "Running related PHPUnit tests:"
+printf '  %s\n' "${UNIQUE_TESTS[@]}"
+
+CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
+
+run_phpunit() {
+	if kj_php_cs_docker_exec "$REPO_ROOT" vendor/bin/phpunit "$@"; then
+		return 0
+	fi
+	status=$?
+	if [ "$status" -ne 127 ]; then
+		return "$status"
+	fi
+
+	if [ -x "$REPO_ROOT/vendor/bin/phpunit" ]; then
+		xdebug_mode="${KJ_PHP_CS_XDEBUG_MODE-}"
+		if [ -n "$xdebug_mode" ]; then
+			(cd "$REPO_ROOT" && XDEBUG_MODE="$xdebug_mode" ./vendor/bin/phpunit "$@")
+			return $?
+		fi
+		(cd "$REPO_ROOT" && ./vendor/bin/phpunit "$@")
+		return $?
+	fi
+
+	return 127
+}
+
+if ! run_phpunit "${UNIQUE_TESTS[@]}"; then
+	status=$?
+	if [ "$status" -eq 127 ]; then
+		echo "WARNING: PHPUnit unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpunit). Skipping related tests."
+		echo "Run: make test"
+		exit 0
+	fi
+	echo ""
+	echo "Related PHPUnit tests failed. Fix the failures above or run:"
+	echo "  make test"
+	exit 1
+fi
+
+exit 0

@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# Pre-commit: pnpm lint + typecheck when staged files touch dev-tools/postman-smoke/**
+# Soft-skips if pnpm or node_modules are unavailable.
+# Does not run full pnpm smoke (needs live API/DB).
+
+exec 1>&2
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+PKG_DIR="$REPO_ROOT/dev-tools/postman-smoke"
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM || true)
+
+if [ -z "$STAGED_FILES" ]; then
+	exit 0
+fi
+
+TOUCHED=0
+while IFS= read -r file; do
+	[ -z "$file" ] && continue
+	if [[ "$file" == dev-tools/postman-smoke/* ]]; then
+		TOUCHED=1
+		break
+	fi
+done <<< "$STAGED_FILES"
+
+if [ "$TOUCHED" -eq 0 ]; then
+	exit 0
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+	echo "WARNING: pnpm not found. Skipping postman-smoke lint/typecheck."
+	echo "Install pnpm or run: make lint-postman-smoke"
+	exit 0
+fi
+
+if [ ! -d "$PKG_DIR/node_modules" ]; then
+	echo "WARNING: dev-tools/postman-smoke/node_modules missing. Skipping postman-smoke lint/typecheck."
+	echo "Run: cd dev-tools/postman-smoke && pnpm install"
+	echo "Or: make lint-postman-smoke"
+	exit 0
+fi
+
+cd "$PKG_DIR" || exit 1
+
+if ! pnpm lint; then
+	echo ""
+	echo "postman-smoke eslint failed. Fix errors or run:"
+	echo "  make fix-postman-smoke"
+	echo "  make lint-postman-smoke"
+	exit 1
+fi
+
+if ! pnpm typecheck; then
+	echo ""
+	echo "postman-smoke typecheck failed. Fix errors or run:"
+	echo "  make lint-postman-smoke"
+	exit 1
+fi
+
+exit 0

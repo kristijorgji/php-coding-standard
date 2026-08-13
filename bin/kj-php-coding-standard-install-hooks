@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Install shared git hooks from kristijorgji/php-coding-standard into the consumer repo.
+# Requires .kj-php-coding-standard.env with KJ_PHP_CS_HOOKS at the repo root.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PACKAGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+REPO_ROOT="${KJ_PHP_CS_REPO_ROOT:-$(pwd)}"
+if [ ! -f "$REPO_ROOT/composer.json" ]; then
+	echo "ERROR: Run from the consumer project root (composer.json not found in $REPO_ROOT)."
+	exit 1
+fi
+
+ENV_FILE="$REPO_ROOT/.kj-php-coding-standard.env"
+if [ ! -f "$ENV_FILE" ]; then
+	echo "ERROR: Missing $ENV_FILE"
+	echo "Create it with KJ_PHP_CS_HOOKS and KJ_PHP_CS_DOCKER_CONTAINER (see package README)."
+	exit 1
+fi
+
+# shellcheck disable=SC1090
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+if [ -z "${KJ_PHP_CS_HOOKS:-}" ]; then
+	echo "ERROR: KJ_PHP_CS_HOOKS is empty in $ENV_FILE"
+	exit 1
+fi
+
+CATALOG="01-markdownlint 02-phpunit-related 03-code-analyse 04-postman-smoke-lint"
+
+HOOKS_DEST="$REPO_ROOT/git_hooks"
+mkdir -p "$HOOKS_DEST/pre-commit.d" "$HOOKS_DEST/lib"
+
+cp "$PACKAGE_ROOT/hooks/pre-commit" "$HOOKS_DEST/pre-commit"
+cp "$PACKAGE_ROOT/hooks/lib/kj-php-cs-env.sh" "$HOOKS_DEST/lib/kj-php-cs-env.sh"
+
+hook_enabled() {
+	local needle="$1"
+	local raw
+	local IFS=','
+	# shellcheck disable=SC2086
+	for raw in $KJ_PHP_CS_HOOKS; do
+		name="$(echo "$raw" | tr -d '[:space:]')"
+		if [ "$name" = "$needle" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+for name in $CATALOG; do
+	src="$PACKAGE_ROOT/hooks/pre-commit.d/$name"
+	dst="$HOOKS_DEST/pre-commit.d/$name"
+	if hook_enabled "$name"; then
+		if [ ! -f "$src" ]; then
+			echo "ERROR: Catalog hook missing in package: $name"
+			exit 1
+		fi
+		cp "$src" "$dst"
+		chmod +x "$dst"
+		echo "Installed hook: $name"
+	else
+		if [ -f "$dst" ]; then
+			rm -f "$dst"
+			echo "Removed disabled catalog hook: $name"
+		fi
+	fi
+done
+
+chmod +x "$HOOKS_DEST/pre-commit" "$HOOKS_DEST/lib/kj-php-cs-env.sh"
+
+(
+	cd "$REPO_ROOT"
+	git config core.hooksPath ./git_hooks
+)
+
+echo "Done. core.hooksPath=./git_hooks"
+echo "Verify with: make verify-hooks"

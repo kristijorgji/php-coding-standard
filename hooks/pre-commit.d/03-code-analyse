@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Pre-commit: PHPStan (composer code-analyse) when app PHP is staged.
+# Soft-skips if PHPStan / Docker are unavailable.
+
+exec 1>&2
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+# shellcheck disable=SC1091
+source "$HOOK_DIR/../lib/kj-php-cs-env.sh"
+kj_php_cs_load_env "$REPO_ROOT"
+
+STAGED_APP_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^app/.*\.php$' || true)
+
+if [ -z "$STAGED_APP_PHP" ]; then
+	exit 0
+fi
+
+echo "Running PHPStan (composer code-analyse) for staged app PHP..."
+
+CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
+
+run_phpstan() {
+	if kj_php_cs_docker_exec "$REPO_ROOT" composer code-analyse; then
+		return 0
+	fi
+	status=$?
+	if [ "$status" -ne 127 ]; then
+		return "$status"
+	fi
+
+	if [ -x "$REPO_ROOT/vendor/bin/phpstan" ]; then
+		xdebug_mode="${KJ_PHP_CS_XDEBUG_MODE-}"
+		if [ -n "$xdebug_mode" ]; then
+			(cd "$REPO_ROOT" && XDEBUG_MODE="$xdebug_mode" composer code-analyse)
+			return $?
+		fi
+		(cd "$REPO_ROOT" && composer code-analyse)
+		return $?
+	fi
+
+	return 127
+}
+
+if ! run_phpstan; then
+	status=$?
+	if [ "$status" -eq 127 ]; then
+		echo "WARNING: PHPStan unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpstan). Skipping code-analyse."
+		echo "Run: make code-analyse"
+		exit 0
+	fi
+	echo ""
+	echo "PHPStan failed. Fix the errors above or run:"
+	echo "  make code-analyse"
+	exit 1
+fi
+
+exit 0
