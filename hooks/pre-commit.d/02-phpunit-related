@@ -55,10 +55,11 @@ printf '  %s\n' "${UNIQUE_TESTS[@]}"
 CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
 
 run_phpunit() {
-	if kj_php_cs_docker_exec "$REPO_ROOT" vendor/bin/phpunit "$@"; then
+	kj_php_cs_docker_exec "$REPO_ROOT" vendor/bin/phpunit "$@"
+	status=$?
+	if [ "$status" -eq 0 ]; then
 		return 0
 	fi
-	status=$?
 	if [ "$status" -ne 127 ]; then
 		return "$status"
 	fi
@@ -76,17 +77,17 @@ run_phpunit() {
 	return 127
 }
 
-if ! run_phpunit "${UNIQUE_TESTS[@]}"; then
-	status=$?
-	if [ "$status" -eq 127 ]; then
-		echo "WARNING: PHPUnit unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpunit). Skipping related tests."
-		echo "Run: make test"
-		exit 0
-	fi
-	echo ""
-	echo "Related PHPUnit tests failed. Fix the failures above or run:"
-	echo "  make test"
-	exit 1
+run_phpunit "${UNIQUE_TESTS[@]}"
+status=$?
+if [ "$status" -eq 0 ]; then
+	exit 0
 fi
-
-exit 0
+if [ "$status" -eq 127 ]; then
+	echo "WARNING: PHPUnit unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpunit). Skipping related tests."
+	echo "Run: make test"
+	exit 0
+fi
+echo ""
+echo "Related PHPUnit tests failed. Fix the failures above or run:"
+echo "  make test"
+exit 1

@@ -21,10 +21,11 @@ echo "Running PHPStan (composer code-analyse) for staged app PHP..."
 CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
 
 run_phpstan() {
-	if kj_php_cs_docker_exec "$REPO_ROOT" composer code-analyse; then
+	kj_php_cs_docker_exec "$REPO_ROOT" composer code-analyse
+	status=$?
+	if [ "$status" -eq 0 ]; then
 		return 0
 	fi
-	status=$?
 	if [ "$status" -ne 127 ]; then
 		return "$status"
 	fi
@@ -42,17 +43,17 @@ run_phpstan() {
 	return 127
 }
 
-if ! run_phpstan; then
-	status=$?
-	if [ "$status" -eq 127 ]; then
-		echo "WARNING: PHPStan unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpstan). Skipping code-analyse."
-		echo "Run: make code-analyse"
-		exit 0
-	fi
-	echo ""
-	echo "PHPStan failed. Fix the errors above or run:"
-	echo "  make code-analyse"
-	exit 1
+run_phpstan
+status=$?
+if [ "$status" -eq 0 ]; then
+	exit 0
 fi
-
-exit 0
+if [ "$status" -eq 127 ]; then
+	echo "WARNING: PHPStan unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpstan). Skipping code-analyse."
+	echo "Run: make code-analyse"
+	exit 0
+fi
+echo ""
+echo "PHPStan failed. Fix the errors above or run:"
+echo "  make code-analyse"
+exit 1
