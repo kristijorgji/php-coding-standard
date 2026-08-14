@@ -71,7 +71,18 @@ verify-hooks:
 
 ## Multi-PHP
 
-One base ruleset. Set language target per app with PHPCS `php_version`. Optional additive standards can be added later; do not maintain full per-version rule forks.
+One base ruleset (`KristijorgjiCodingStandard`) for PHP 8.2+ consumers. Set the language target per app with PHPCS `php_version`. Do not maintain full per-version rule forks.
+
+For PHP 8.5 apps, also reference the additive `KristijorgjiCodingStandard85` ruleset (enum/attribute spacing and related Slevomat rules):
+
+```xml
+<?xml version="1.0"?>
+<ruleset name="App">
+    <config name="php_version" value="80500"/>
+    <rule ref="KristijorgjiCodingStandard"/>
+    <rule ref="KristijorgjiCodingStandard85"/>
+</ruleset>
+```
 
 ## License
 
