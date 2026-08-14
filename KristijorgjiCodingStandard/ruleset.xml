@@ -53,6 +53,14 @@
     <rule ref="SlevomatCodingStandard.Commenting.EmptyComment" />
     <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
     <rule ref="PSR2.Files.EndFileNewline"/>
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="160"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.NewWithoutParentheses" />
+
 
     <rule ref="SlevomatCodingStandard.Classes.RequireConstructorPropertyPromotion" />
     <rule ref="SlevomatCodingStandard.Classes.UselessLateStaticBinding" />
