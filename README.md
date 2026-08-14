@@ -1,11 +1,12 @@
 # kristijorgji/php-coding-standard
 
-PHPCS house style (Slevomat-based) plus a shared git pre-commit hook catalog.
+PHPCS / ECS house style (Slevomat-based) plus a shared git pre-commit hook catalog.
 
 ## Table of contents
 
 - [Install (consumer app)](#install-consumer-app)
-  - [PHPCS](#phpcs)
+  - [ECS (recommended)](#ecs-recommended)
+  - [PHPCS (XML, back-compat)](#phpcs-xml-back-compat)
   - [Git hooks](#git-hooks)
 - [Multi-PHP](#multi-php)
 - [License](#license)
@@ -13,12 +14,53 @@ PHPCS house style (Slevomat-based) plus a shared git pre-commit hook catalog.
 ## Install (consumer app)
 
 ```bash
-composer require --dev kristijorgji/php-coding-standard
+composer require --dev kristijorgji/php-coding-standard:^0.3
 ```
 
-### PHPCS
+Also require Easy Coding Standard in the app:
 
-In your project `phpcs.xml`:
+```bash
+composer require --dev symplify/easy-coding-standard:^13
+```
+
+### ECS (recommended)
+
+Create `ecs.php` at the app root and merge the shared configs:
+
+```php
+<?php declare(strict_types=1);
+
+use Symplify\EasyCodingStandard\Config\ECSConfig;
+
+$base = require __DIR__ . '/vendor/kristijorgji/php-coding-standard/ecs/base.php';
+$php85 = require __DIR__ . '/vendor/kristijorgji/php-coding-standard/ecs/php85.php';
+
+return ECSConfig::configure()
+    ->withPaths([
+        __DIR__ . '/app',
+        __DIR__ . '/tests',
+    ])
+    ->withRules(array_merge($base['rules'], $php85['rules']))
+    ->withSkip(array_merge($base['skip'], $php85['skip']))
+    ->withParallel()
+    ->withCache(__DIR__ . '/.ecs_cache');
+```
+
+Apply each entry from `$base['rulesWithConfiguration']` / `$php85['rulesWithConfiguration']`
+via `->withConfiguredRule($class, $config)`.
+
+Composer scripts:
+
+```json
+{
+    "code-style": ["vendor/bin/ecs check"],
+    "code-format": ["vendor/bin/ecs check --fix"]
+}
+```
+
+### PHPCS (XML, back-compat)
+
+The XML rulesets remain for consumers that have not migrated yet:
 
 ```xml
 <rule ref="KristijorgjiCodingStandard"/>
@@ -71,18 +113,10 @@ verify-hooks:
 
 ## Multi-PHP
 
-One base ruleset (`KristijorgjiCodingStandard`) for PHP 8.2+ consumers. Set the language target per app with PHPCS `php_version`. Do not maintain full per-version rule forks.
+One base ruleset (`KristijorgjiCodingStandard` / `ecs/base.php`) for PHP 8.2+ consumers.
 
-For PHP 8.5 apps, also reference the additive `KristijorgjiCodingStandard85` ruleset (enum/attribute spacing and related Slevomat rules):
-
-```xml
-<?xml version="1.0"?>
-<ruleset name="App">
-    <config name="php_version" value="80500"/>
-    <rule ref="KristijorgjiCodingStandard"/>
-    <rule ref="KristijorgjiCodingStandard85"/>
-</ruleset>
-```
+For PHP 8.5 apps, also load the additive `KristijorgjiCodingStandard85` / `ecs/php85.php`
+(enum/attribute spacing and related Slevomat rules).
 
 ## License
 
