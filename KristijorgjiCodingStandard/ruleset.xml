@@ -20,7 +20,13 @@
     <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint" />
     <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint" />
     <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint" />
-    <rule ref="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat" />
+    <!-- DNFTypeHintFormat replaces deprecated UnionTypeHintFormat (removed in Slevomat 9). -->
+    <rule ref="SlevomatCodingStandard.TypeHints.DNFTypeHintFormat">
+        <properties>
+            <property name="withSpacesAroundOperators" value="no" />
+            <property name="withSpacesInsideParentheses" value="no" />
+        </properties>
+    </rule>
 
     <!--Cleanup useless dead code-->
     <rule ref="SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure" />
