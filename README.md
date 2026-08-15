@@ -54,6 +54,10 @@ phpdoc (`PhpdocAlignFixer` `align: left`), one blank line between class members
 (`ClassAttributesSeparationFixer`, `MethodSpacingSniff`), and closure `use (`
 wrapping via `MultiLineFunctionDeclaration`.
 
+0.3.2: `ClassAttributesSeparationFixer` uses `only_if_meta` for `const` and
+`property` (blank line only when phpdoc/attributes exist; bare members stay
+packed). Methods still use `one`.
+
 Composer scripts:
 
 ```json

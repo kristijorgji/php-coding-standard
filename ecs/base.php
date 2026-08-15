@@ -168,9 +168,9 @@ return [
         ],
         ClassAttributesSeparationFixer::class => [
             'elements' => [
-                'const' => 'one',
+                'const' => 'only_if_meta',
                 'method' => 'one',
-                'property' => 'one',
+                'property' => 'only_if_meta',
             ],
         ],
     ],
