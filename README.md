@@ -49,6 +49,11 @@ return ECSConfig::configure()
 Apply each entry from `$base['rulesWithConfiguration']` / `$php85['rulesWithConfiguration']`
 via `->withConfiguredRule($class, $config)`.
 
+0.3.1 additions: spaces-only indentation (`IndentationTypeFixer`), left-aligned
+phpdoc (`PhpdocAlignFixer` `align: left`), one blank line between class members
+(`ClassAttributesSeparationFixer`, `MethodSpacingSniff`), and closure `use (`
+wrapping via `MultiLineFunctionDeclaration`.
+
 Composer scripts:
 
 ```json

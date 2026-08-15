@@ -1,11 +1,13 @@
 <?php declare(strict_types=1);
 
+use PhpCsFixer\Fixer\ClassNotation\ClassAttributesSeparationFixer;
 use PhpCsFixer\Fixer\Import\NoUnusedImportsFixer;
 use PhpCsFixer\Fixer\Phpdoc\AlignMultilineCommentFixer;
 use PhpCsFixer\Fixer\Phpdoc\NoEmptyPhpdocFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocAlignFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocIndentFixer;
 use PhpCsFixer\Fixer\Phpdoc\PhpdocSingleLineVarSpacingFixer;
+use PhpCsFixer\Fixer\Whitespace\IndentationTypeFixer;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\Files\LineLengthSniff;
 use PHP_CodeSniffer\Standards\Generic\Sniffs\WhiteSpace\ScopeIndentSniff;
 use PHP_CodeSniffer\Standards\PSR2\Sniffs\Files\EndFileNewlineSniff;
@@ -15,6 +17,7 @@ use PHP_CodeSniffer\Standards\Squiz\Sniffs\WhiteSpace\SuperfluousWhitespaceSniff
 use SlevomatCodingStandard\Sniffs\Arrays\DisallowImplicitArrayCreationSniff;
 use SlevomatCodingStandard\Sniffs\Arrays\TrailingArrayCommaSniff;
 use SlevomatCodingStandard\Sniffs\Classes\ClassConstantVisibilitySniff;
+use SlevomatCodingStandard\Sniffs\Classes\MethodSpacingSniff;
 use SlevomatCodingStandard\Sniffs\Classes\RequireConstructorPropertyPromotionSniff;
 use SlevomatCodingStandard\Sniffs\Classes\RequireMultiLineMethodSignatureSniff;
 use SlevomatCodingStandard\Sniffs\Classes\TraitUseDeclarationSniff;
@@ -118,13 +121,13 @@ return [
         RequireMultiLineMethodSignatureSniff::class,
         RequireMultiLineConditionSniff::class,
 
-        // PHP-CS-Fixer (phpdoc / comments / imports)
+        // PHP-CS-Fixer (phpdoc / comments / imports / whitespace)
         AlignMultilineCommentFixer::class,
         NoEmptyPhpdocFixer::class,
-        PhpdocAlignFixer::class,
         PhpdocIndentFixer::class,
         PhpdocSingleLineVarSpacingFixer::class,
         NoUnusedImportsFixer::class,
+        IndentationTypeFixer::class,
     ],
     'rulesWithConfiguration' => [
         DeclareStrictTypesSniff::class => [
@@ -156,13 +159,26 @@ return [
                 'T_DOC_COMMENT_OPEN_TAG',
             ],
         ],
+        PhpdocAlignFixer::class => [
+            'align' => 'left',
+        ],
+        MethodSpacingSniff::class => [
+            'minLinesCount' => 1,
+            'maxLinesCount' => 1,
+        ],
+        ClassAttributesSeparationFixer::class => [
+            'elements' => [
+                'const' => 'one',
+                'method' => 'one',
+                'property' => 'one',
+            ],
+        ],
     ],
     'skip' => [
-        // : these two codes fight other rules when left enabled
+        // These two codes fight other rules when left enabled
         FunctionCallSignatureSniff::class . '.SpaceAfterCloseBracket',
         FunctionCallSignatureSniff::class . '.OpeningIndent',
-        // FunctionCallSignature.Indent and MultiLineFunctionDeclaration fight over closure "use ("
-        MultiLineFunctionDeclarationSniff::class . '.Indent',
-        MultiLineFunctionDeclarationSniff::class . '.SpaceBeforeUse',
+        // FunctionCallSignature.Indent fights MultiLineFunctionDeclaration over closure "use ("
+        FunctionCallSignatureSniff::class . '.Indent',
     ],
 ];
