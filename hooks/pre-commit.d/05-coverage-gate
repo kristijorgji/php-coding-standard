@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Pre-commit: fail when clover coverage is below KJ_PHP_CS_COVERAGE_MIN.
+# Soft-skips when the threshold is unset, or when PHPUnit / Docker are unavailable.
+#
+# Consumer env (optional):
+#   KJ_PHP_CS_COVERAGE_MIN    — required to enable; integer/float percent (e.g. 80)
+#   KJ_PHP_CS_COVERAGE_CLOVER — clover report path (default: build/coverage/clover.xml)
+
+exec 1>&2
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$HOOK_DIR/../../../../.." && pwd)"
+# shellcheck disable=SC1091
+source "$HOOK_DIR/../lib/kj-php-cs-env.sh"
+kj_php_cs_load_env "$REPO_ROOT"
+
+if [ -z "${KJ_PHP_CS_COVERAGE_MIN:-}" ]; then
+	exit 0
+fi
+
+CLOVER="${KJ_PHP_CS_COVERAGE_CLOVER:-build/coverage/clover.xml}"
+CHECKER="vendor/bin/kj-php-coding-standard-coverage-check"
+CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
+
+echo "Running coverage gate (min ${KJ_PHP_CS_COVERAGE_MIN}%, clover ${CLOVER})"
+
+# Coverage needs a driver; do not inherit KJ_PHP_CS_XDEBUG_MODE=off.
+run_coverage() {
+	if [ -n "$CONTAINER" ] \
+		&& command -v docker >/dev/null 2>&1 \
+		&& docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER"
+	then
+		docker exec \
+			-e XDEBUG_MODE=coverage \
+			-w /var/www/html/app \
+			"$CONTAINER" \
+			vendor/bin/phpunit --coverage-clover "$CLOVER"
+		status=$?
+		if [ "$status" -ne 0 ]; then
+			return "$status"
+		fi
+		docker exec \
+			-w /var/www/html/app \
+			"$CONTAINER" \
+			"$CHECKER" "$CLOVER" "$KJ_PHP_CS_COVERAGE_MIN"
+		return $?
+	fi
+
+	if [ -x "$REPO_ROOT/vendor/bin/phpunit" ] && [ -x "$REPO_ROOT/$CHECKER" ]; then
+		(
+			cd "$REPO_ROOT" \
+				&& XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover "$CLOVER" \
+				&& "./$CHECKER" "$CLOVER" "$KJ_PHP_CS_COVERAGE_MIN"
+		)
+		return $?
+	fi
+
+	return 127
+}
+
+run_coverage
+status=$?
+if [ "$status" -eq 0 ]; then
+	exit 0
+fi
+if [ "$status" -eq 127 ]; then
+	echo "WARNING: coverage tools unavailable (no ${CONTAINER:-docker} container / vendor/bin/phpunit). Skipping coverage gate."
+	echo "Run: composer tests-coverage"
+	exit 0
+fi
+echo ""
+echo "Coverage gate failed. Raise coverage or adjust KJ_PHP_CS_COVERAGE_MIN."
+exit 1

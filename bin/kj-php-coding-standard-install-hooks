@@ -42,7 +42,7 @@ if [ -z "${KJ_PHP_CS_HOOKS:-}" ]; then
 	exit 1
 fi
 
-CATALOG="01-markdownlint 02-phpunit-related 03-code-analyse 04-postman-smoke-lint"
+CATALOG="01-markdownlint 02-phpunit-related 03-code-analyse 04-postman-smoke-lint 05-coverage-gate"
 PKG_HOOKS_NS="kristijorgji/php-coding-standard"
 HOOKS_ROOT="$REPO_ROOT/git_hooks"
 HOOKS_PKG="$HOOKS_ROOT/installed/$PKG_HOOKS_NS"
