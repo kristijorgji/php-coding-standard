@@ -1,0 +1,12 @@
+---
+description: Keep this package generic and free of consumer-identifying details
+alwaysApply: true
+---
+
+# Generic package
+
+This is a published, reusable coding-standard package. Nothing here may name or
+hint at any consumer, employer, client, reference project, or private repository.
+
+Before adding or editing docs, examples, scripts, hook messages or commit
+messages, read `.cursor/skills/generic-package-hygiene/SKILL.md`.

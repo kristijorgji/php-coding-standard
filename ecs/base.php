@@ -168,9 +168,11 @@ return [
         ],
         ClassAttributesSeparationFixer::class => [
             'elements' => [
-                'const' => 'only_if_meta',
+                'const' => 'none',
+                'property' => 'none',
+                'trait_import' => 'none',
+                'case' => 'none',
                 'method' => 'one',
-                'property' => 'only_if_meta',
             ],
         ],
     ],

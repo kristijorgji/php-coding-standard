@@ -54,9 +54,16 @@ phpdoc (`PhpdocAlignFixer` `align: left`), one blank line between class members
 (`ClassAttributesSeparationFixer`, `MethodSpacingSniff`), and closure `use (`
 wrapping via `MultiLineFunctionDeclaration`.
 
-0.3.2: `ClassAttributesSeparationFixer` uses `only_if_meta` for `const` and
+0.3.2: `ClassAttributesSeparationFixer` used `only_if_meta` for `const` and
 `property` (blank line only when phpdoc/attributes exist; bare members stay
 packed). Methods still use `one`.
+
+0.3.3: `ClassAttributesSeparationFixer` uses `none` for `const`, `property`,
+`trait_import`, and `case`. Despite the name, `none` still inserts a blank line
+after a documented/attributed member and between different member kinds; bare
+runs of the same kind stay packed. Methods still use `one`.
+
+Also in 0.3.3: shared coverage gate tooling (see [Coverage gate](#coverage-gate)).
 
 Composer scripts:
 
@@ -85,9 +92,13 @@ Create `.kj-php-coding-standard.env` at the repo root:
 KJ_PHP_CS_DOCKER_CONTAINER=my-app-php
 KJ_PHP_CS_XDEBUG_MODE=off
 KJ_PHP_CS_HOOKS=01-markdownlint,02-phpunit-related,03-code-analyse
+# Optional coverage gate (also requires listing 05-coverage-gate in KJ_PHP_CS_HOOKS):
+# KJ_PHP_CS_COVERAGE_MIN=80
+# KJ_PHP_CS_COVERAGE_CLOVER=build/coverage/clover.xml
 ```
 
-Available hooks: `01-markdownlint`, `02-phpunit-related`, `03-code-analyse`, `04-postman-smoke-lint`.
+Available hooks: `01-markdownlint`, `02-phpunit-related`, `03-code-analyse`,
+`04-postman-smoke-lint`, `05-coverage-gate`.
 
 ```bash
 vendor/bin/kj-php-coding-standard-install-hooks
@@ -119,6 +130,33 @@ dev-init:
 verify-hooks:
 	bash vendor/kristijorgji/php-coding-standard/scripts/check-hooks.sh
 ```
+
+### Coverage gate
+
+Shared clover threshold checker (no consumer-specific paths baked in):
+
+```bash
+vendor/bin/phpunit --coverage-clover build/coverage/clover.xml
+vendor/bin/kj-php-coding-standard-coverage-check build/coverage/clover.xml 80
+```
+
+Suggested composer script:
+
+```json
+{
+    "tests-coverage": [
+        "vendor/bin/phpunit --coverage-clover build/coverage/clover.xml",
+        "vendor/bin/kj-php-coding-standard-coverage-check build/coverage/clover.xml 80"
+    ]
+}
+```
+
+Run with `XDEBUG_MODE=coverage` (or another coverage driver). Gitignore the report
+directory (for example `/build/coverage/`).
+
+To also enforce the gate on commit, add `05-coverage-gate` to `KJ_PHP_CS_HOOKS`
+and set `KJ_PHP_CS_COVERAGE_MIN` in `.kj-php-coding-standard.env`, then re-run
+the installer. The hook exits 0 when `KJ_PHP_CS_COVERAGE_MIN` is unset.
 
 ## Multi-PHP
 

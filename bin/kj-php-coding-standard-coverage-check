@@ -1,0 +1,77 @@
+#!/usr/bin/env php
+<?php declare(strict_types=1);
+
+/**
+ * Fail when PHPUnit clover coverage is below a minimum percentage.
+ *
+ * Usage:
+ *   kj-php-coding-standard-coverage-check <clover.xml> <min-percent>
+ *
+ * Exit codes:
+ *   0 — coverage is at or above the threshold
+ *   1 — coverage is below the threshold, or the report is missing/invalid
+ */
+
+if ($argc !== 3) {
+    fwrite(STDERR, "Usage: kj-php-coding-standard-coverage-check <clover.xml> <min-percent>\n");
+    exit(1);
+}
+
+$inputFile = $argv[1];
+$minPercent = (float) $argv[2];
+
+if ($minPercent < 0.0 || $minPercent > 100.0) {
+    fwrite(STDERR, "ERROR: min-percent must be between 0 and 100, got {$argv[2]}\n");
+    exit(1);
+}
+
+if (!is_file($inputFile) || !is_readable($inputFile)) {
+    fwrite(STDERR, "ERROR: clover report not found or not readable: {$inputFile}\n");
+    exit(1);
+}
+
+$contents = file_get_contents($inputFile);
+if ($contents === false || $contents === '') {
+    fwrite(STDERR, "ERROR: clover report is empty: {$inputFile}\n");
+    exit(1);
+}
+
+libxml_use_internal_errors(true);
+$xml = simplexml_load_string($contents);
+if ($xml === false) {
+    fwrite(STDERR, "ERROR: clover report is not valid XML: {$inputFile}\n");
+    foreach (libxml_get_errors() as $error) {
+        fwrite(STDERR, '  ' . trim($error->message) . "\n");
+    }
+    exit(1);
+}
+
+$metrics = $xml->xpath('//metrics');
+if ($metrics === false || $metrics === []) {
+    fwrite(STDERR, "ERROR: no //metrics nodes found in {$inputFile}\n");
+    exit(1);
+}
+
+$totalElements = 0;
+$checkedElements = 0;
+
+foreach ($metrics as $metric) {
+    $totalElements += (int) $metric['elements'];
+    $checkedElements += (int) $metric['coveredelements'];
+}
+
+if ($totalElements === 0) {
+    fwrite(STDERR, "ERROR: clover report has zero coverable elements: {$inputFile}\n");
+    exit(1);
+}
+
+$coverage = ($checkedElements / $totalElements) * 100.0;
+$formatted = number_format($coverage, 2, '.', '');
+
+if ($coverage < $minPercent) {
+    fwrite(STDERR, "Code coverage is {$formatted}%, which is below the accepted {$minPercent}%\n");
+    exit(1);
+}
+
+fwrite(STDOUT, "Code coverage is {$formatted}% - OK! (threshold {$minPercent}%)\n");
+exit(0);
