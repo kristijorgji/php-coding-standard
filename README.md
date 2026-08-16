@@ -65,6 +65,17 @@ runs of the same kind stay packed. Methods still use `one`.
 
 Also in 0.3.3: shared coverage gate tooling (see [Coverage gate](#coverage-gate)).
 
+0.3.4: trailing commas forbidden on single-line calls/declarations/closures
+(`DisallowTrailingComma*` `onlySingleLine: true`),
+`Generic.Strings.UnnecessaryStringConcat` (`allowMultiline: true`, so
+line-wrapped literal concatenations remain allowed; same-line `'a' . 'b'` is not),
+and PHPUnit fixers (`PhpUnitConstructFixer`, `PhpUnitDedicateAssertFixer`,
+`PhpUnitSetUpTearDownVisibilityFixer`, `PhpUnitTestAnnotationFixer` style
+`prefix`, plus kubawerlos `PhpUnitAssertArgumentsOrderFixer` /
+`PhpUnitDedicatedAssertFixer`). Assertion call style stays `$this->assert*`
+(Rector `PreferPHPUnitThisCallRector`); `PhpUnitTestCaseStaticMethodCallsFixer`
+is intentionally not included.
+
 Composer scripts:
 
 ```json
