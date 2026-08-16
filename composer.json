@@ -2,7 +2,7 @@
     "name": "kristijorgji/php-coding-standard",
     "description": "PHPCS/ECS house coding standard (Slevomat-based) plus optional shared git pre-commit hooks",
     "type": "phpcodesniffer-standard",
-    "version": "0.3.4",
+    "version": "0.3.5",
     "license": "MIT",
     "authors": [
         {
@@ -16,11 +16,13 @@
         "friendsofphp/php-cs-fixer": "^3.95",
         "kubawerlos/php-cs-fixer-custom-fixers": "^3.0",
         "slevomat/coding-standard": "^8.31",
-        "squizlabs/php_codesniffer": "^4.0.1"
+        "squizlabs/php_codesniffer": "^4.0.1",
+        "symfony/yaml": "^5.4 || ^6.4 || ^7.0 || ^8.0"
     },
     "bin": [
         "bin/kj-php-coding-standard-coverage-check",
-        "bin/kj-php-coding-standard-install-hooks"
+        "bin/kj-php-coding-standard-install-hooks",
+        "bin/kj-php-coding-standard-yaml-lint"
     ],
     "config": {
         "allow-plugins": {

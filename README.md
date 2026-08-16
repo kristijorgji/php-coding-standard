@@ -76,6 +76,9 @@ and PHPUnit fixers (`PhpUnitConstructFixer`, `PhpUnitDedicateAssertFixer`,
 (Rector `PreferPHPUnitThisCallRector`); `PhpUnitTestCaseStaticMethodCallsFixer`
 is intentionally not included.
 
+0.3.5: shared YAML lint CLI (`kj-php-coding-standard-yaml-lint`); see
+[YAML lint](#yaml-lint).
+
 Composer scripts:
 
 ```json
@@ -168,6 +171,24 @@ directory (for example `/build/coverage/`).
 To also enforce the gate on commit, add `05-coverage-gate` to `KJ_PHP_CS_HOOKS`
 and set `KJ_PHP_CS_COVERAGE_MIN` in `.kj-php-coding-standard.env`, then re-run
 the installer. The hook exits 0 when `KJ_PHP_CS_COVERAGE_MIN` is unset.
+
+### YAML lint
+
+Parse one or more YAML files (paths are consumer-supplied; nothing is hardcoded):
+
+```bash
+vendor/bin/kj-php-coding-standard-yaml-lint path/to/config.yml another.yml
+```
+
+Suggested composer script:
+
+```json
+{
+    "yaml-lint": [
+        "vendor/bin/kj-php-coding-standard-yaml-lint serverless.yml"
+    ]
+}
+```
 
 ## Multi-PHP
 
