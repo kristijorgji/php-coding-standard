@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 use PhpCsFixer\Fixer\ClassNotation\ClassAttributesSeparationFixer;
 use PhpCsFixer\Fixer\Import\NoUnusedImportsFixer;
@@ -50,6 +50,7 @@ use SlevomatCodingStandard\Sniffs\Functions\UnusedInheritedVariablePassedToClosu
 use SlevomatCodingStandard\Sniffs\Functions\UnusedParameterSniff;
 use SlevomatCodingStandard\Sniffs\Functions\UselessParameterDefaultValueSniff;
 use SlevomatCodingStandard\Sniffs\Namespaces\AlphabeticallySortedUsesSniff;
+use SlevomatCodingStandard\Sniffs\Namespaces\ReferenceUsedNamesOnlySniff;
 use SlevomatCodingStandard\Sniffs\Namespaces\UnusedUsesSniff;
 use SlevomatCodingStandard\Sniffs\Namespaces\UseFromSameNamespaceSniff;
 use SlevomatCodingStandard\Sniffs\Namespaces\UselessAliasSniff;
@@ -147,6 +148,18 @@ return [
     'rulesWithConfiguration' => [
         DeclareStrictTypesSniff::class => [
             'declareOnFirstLine' => true,
+            'spacesCountAroundEqualsSign' => 1,
+        ],
+        ReferenceUsedNamesOnlySniff::class => [
+            'allowFallbackGlobalConstants' => false,
+            'allowFallbackGlobalFunctions' => false,
+            'allowFullyQualifiedGlobalClasses' => false,
+            'allowFullyQualifiedGlobalConstants' => false,
+            'allowFullyQualifiedGlobalFunctions' => false,
+            'allowFullyQualifiedNameForCollidingClasses' => true,
+            'allowFullyQualifiedNameForCollidingConstants' => true,
+            'allowFullyQualifiedNameForCollidingFunctions' => true,
+            'searchAnnotations' => true,
         ],
         UnusedUsesSniff::class => [
             'searchAnnotations' => true,

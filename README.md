@@ -28,7 +28,7 @@ composer require --dev symplify/easy-coding-standard:^13
 Create `ecs.php` at the app root and merge the shared configs:
 
 ```php
-<?php declare(strict_types=1);
+<?php declare(strict_types = 1);
 
 use Symplify\EasyCodingStandard\Config\ECSConfig;
 
@@ -78,6 +78,11 @@ is intentionally not included.
 
 0.3.5: shared YAML lint CLI (`kj-php-coding-standard-yaml-lint`); see
 [YAML lint](#yaml-lint).
+
+0.3.6: `ReferenceUsedNamesOnlySniff` (prefer imported short names in code and
+phpdoc; FQCN only when names collide) and `DeclareStrictTypesSniff` with
+`spacesCountAroundEqualsSign: 1` so files use
+`<?php declare(strict_types = 1);` on the opening line.
 
 Composer scripts:
 
