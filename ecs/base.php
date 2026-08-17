@@ -87,9 +87,6 @@ return [
         // Ported from KristijorgjiCodingStandard/ruleset.xml
         AlphabeticallySortedUsesSniff::class,
         UselessInheritDocCommentSniff::class,
-        ParameterTypeHintSniff::class,
-        PropertyTypeHintSniff::class,
-        ReturnTypeHintSniff::class,
         UselessConstantTypeHintSniff::class,
         UnusedInheritedVariablePassedToClosureSniff::class,
         UnusedParameterSniff::class,
@@ -163,6 +160,27 @@ return [
         ],
         UnusedUsesSniff::class => [
             'searchAnnotations' => true,
+        ],
+        ParameterTypeHintSniff::class => [
+            'traversableTypeHints' => [
+                'Traversable',
+                'Iterator',
+                'IteratorAggregate',
+            ],
+        ],
+        PropertyTypeHintSniff::class => [
+            'traversableTypeHints' => [
+                'Traversable',
+                'Iterator',
+                'IteratorAggregate',
+            ],
+        ],
+        ReturnTypeHintSniff::class => [
+            'traversableTypeHints' => [
+                'Traversable',
+                'Iterator',
+                'IteratorAggregate',
+            ],
         ],
         DNFTypeHintFormatSniff::class => [
             'withSpacesAroundOperators' => 'no',
