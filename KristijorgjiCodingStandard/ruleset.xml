@@ -30,9 +30,33 @@
 
     <!--Cleanup useless phpdocblocks if type is specified already in property-->
     <rule ref="SlevomatCodingStandard.Commenting.UselessInheritDocComment" />
-    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint" />
-    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint" />
-    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint" />
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <properties>
+            <property name="traversableTypeHints" type="array">
+                <element value="Traversable"/>
+                <element value="Iterator"/>
+                <element value="IteratorAggregate"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint">
+        <properties>
+            <property name="traversableTypeHints" type="array">
+                <element value="Traversable"/>
+                <element value="Iterator"/>
+                <element value="IteratorAggregate"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+        <properties>
+            <property name="traversableTypeHints" type="array">
+                <element value="Traversable"/>
+                <element value="Iterator"/>
+                <element value="IteratorAggregate"/>
+            </property>
+        </properties>
+    </rule>
     <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint" />
     <!-- DNFTypeHintFormat replaces deprecated UnionTypeHintFormat (removed in Slevomat 9). -->
     <rule ref="SlevomatCodingStandard.TypeHints.DNFTypeHintFormat">

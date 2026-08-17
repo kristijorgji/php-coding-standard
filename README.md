@@ -84,6 +84,12 @@ phpdoc; FQCN only when names collide) and `DeclareStrictTypesSniff` with
 `spacesCountAroundEqualsSign: 1` so files use
 `<?php declare(strict_types = 1);` on the opening line.
 
+0.3.7: `ParameterTypeHintSniff` / `PropertyTypeHintSniff` /
+`ReturnTypeHintSniff` configured with `traversableTypeHints` (`Traversable`,
+`Iterator`, `IteratorAggregate`) so `MissingTraversableTypeHintSpecification`
+requires `@return Iterator<...>` (and similar) when the native type is
+traversable.
+
 Composer scripts:
 
 ```json
