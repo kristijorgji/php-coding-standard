@@ -6,6 +6,8 @@
 #
 # Both tools use git-tracked paths (skips vendor/). Override MD_FILES before
 # include to drop extra files (e.g. README.md if the consumer ignores it).
+# markdownlint gets --tmpfs /data/vendor so "gitignore": true does not walk
+# Composer deps on the bind mount, and --no-globs so config globs are unused.
 
 PRETTIER_VERSION ?= 3.5.3
 ML_VERSION ?= v0.17.2
@@ -18,8 +20,8 @@ lint-markdown:
 	@echo "# markdownlint-cli2"
 	@echo "################################################################################"
 	@if [ -z "$(MD_FILES)" ]; then exit 0; fi
-	@docker run --rm -v $(PWD):/data -w /data \
-		davidanson/markdownlint-cli2:$(ML_VERSION) $(MD_FILES)
+	@docker run --rm -v $(PWD):/data -w /data --tmpfs /data/vendor \
+		davidanson/markdownlint-cli2:$(ML_VERSION) --no-globs $(MD_FILES)
 
 fix-markdown:
 	@echo "################################################################################"
@@ -37,5 +39,5 @@ fix-markdown:
 	@echo "################################################################################"
 	@echo "# markdownlint-cli2 --fix"
 	@echo "################################################################################"
-	@docker run --rm -v $(PWD):/data -w /data \
-		davidanson/markdownlint-cli2:$(ML_VERSION) --fix $(MD_FILES)
+	@docker run --rm -v $(PWD):/data -w /data --tmpfs /data/vendor \
+		davidanson/markdownlint-cli2:$(ML_VERSION) --fix --no-globs $(MD_FILES)

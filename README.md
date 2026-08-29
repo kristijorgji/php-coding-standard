@@ -196,8 +196,10 @@ include vendor/kristijorgji/php-coding-standard/make/markdown.mk
 
 That defines `lint-markdown` and `fix-markdown`: pinned `tmknom/prettier` and
 `davidanson/markdownlint-cli2` images, files from `git ls-files -- '*.md'`
-(skips `vendor/`). Override `PRETTIER_VERSION`, `ML_VERSION`, or `MD_FILES`
-before the `include` if needed. Requires `composer install` so the path exists.
+(skips `vendor/`). markdownlint hides `vendor/` with tmpfs so `"gitignore": true`
+does not walk Composer deps. Override `PRETTIER_VERSION`, `ML_VERSION`, or
+`MD_FILES` before the `include` if needed. Requires `composer install` so the
+path exists.
 
 ### Coverage gate
 
