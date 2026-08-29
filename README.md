@@ -8,6 +8,7 @@ PHPCS / ECS house style (Slevomat-based) plus a shared git pre-commit hook catal
   - [ECS (recommended)](#ecs-recommended)
   - [PHPCS (XML, back-compat)](#phpcs-xml-back-compat)
   - [Git hooks](#git-hooks)
+  - [Makefile (markdown)](#makefile-markdown)
 - [Multi-PHP](#multi-php)
 - [License](#license)
 
@@ -95,6 +96,9 @@ docker workdir is `KJ_PHP_CS_DOCKER_WORKDIR` (default `/var/www/html/app`), and
 `02-phpunit-related` maps via `KJ_PHP_CS_RELATED_SRC_PREFIX` /
 `KJ_PHP_CS_RELATED_TEST_PREFIX` (Laravel `app` → `tests/unit/app` by default).
 
+0.3.9: shared Make fragment [`make/markdown.mk`](make/markdown.mk) for
+`lint-markdown` / `fix-markdown` (pinned Docker images, git-tracked `*.md` only).
+
 Composer scripts:
 
 ```json
@@ -181,6 +185,19 @@ dev-init:
 verify-hooks:
 	bash vendor/kristijorgji/php-coding-standard/scripts/check-hooks.sh
 ```
+
+### Makefile (markdown)
+
+Include the shared fragment so consumers do not copy Docker recipes:
+
+```makefile
+include vendor/kristijorgji/php-coding-standard/make/markdown.mk
+```
+
+That defines `lint-markdown` and `fix-markdown`: pinned `tmknom/prettier` and
+`davidanson/markdownlint-cli2` images, files from `git ls-files -- '*.md'`
+(skips `vendor/`). Override `PRETTIER_VERSION` or `ML_VERSION` before the
+`include` if needed. Requires `composer install` so the path exists.
 
 ### Coverage gate
 
