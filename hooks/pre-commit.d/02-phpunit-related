@@ -16,6 +16,11 @@ if [ -z "$STAGED_FILES" ]; then
 	exit 0
 fi
 
+SRC_PREFIX="${KJ_PHP_CS_RELATED_SRC_PREFIX:-app}"
+TEST_PREFIX="${KJ_PHP_CS_RELATED_TEST_PREFIX:-tests/unit/app}"
+SRC_PREFIX="${SRC_PREFIX%/}"
+TEST_PREFIX="${TEST_PREFIX%/}"
+
 TEST_FILES=()
 
 while IFS= read -r file; do
@@ -26,10 +31,10 @@ while IFS= read -r file; do
 		continue
 	fi
 
-	if [[ "$file" == app/* ]] && [[ "$file" == *.php ]]; then
-		rel="${file#app/}"
+	if [[ "$file" == "${SRC_PREFIX}/"* ]] && [[ "$file" == *.php ]]; then
+		rel="${file#"${SRC_PREFIX}"/}"
 		rel_no_ext="${rel%.php}"
-		candidate="tests/unit/app/${rel_no_ext}Test.php"
+		candidate="${TEST_PREFIX}/${rel_no_ext}Test.php"
 		if [ -f "$REPO_ROOT/$candidate" ]; then
 			TEST_FILES+=("$candidate")
 		fi
@@ -54,30 +59,7 @@ printf '  %s\n' "${UNIQUE_TESTS[@]}"
 
 CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
 
-run_phpunit() {
-	kj_php_cs_docker_exec "$REPO_ROOT" vendor/bin/phpunit "$@"
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		return 0
-	fi
-	if [ "$status" -ne 127 ]; then
-		return "$status"
-	fi
-
-	if [ -x "$REPO_ROOT/vendor/bin/phpunit" ]; then
-		xdebug_mode="${KJ_PHP_CS_XDEBUG_MODE-}"
-		if [ -n "$xdebug_mode" ]; then
-			(cd "$REPO_ROOT" && XDEBUG_MODE="$xdebug_mode" ./vendor/bin/phpunit "$@")
-			return $?
-		fi
-		(cd "$REPO_ROOT" && ./vendor/bin/phpunit "$@")
-		return $?
-	fi
-
-	return 127
-}
-
-run_phpunit "${UNIQUE_TESTS[@]}"
+kj_php_cs_run "$REPO_ROOT" vendor/bin/phpunit "${UNIQUE_TESTS[@]}"
 status=$?
 if [ "$status" -eq 0 ]; then
 	exit 0

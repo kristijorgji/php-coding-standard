@@ -26,36 +26,19 @@ echo "Running coverage gate (min ${KJ_PHP_CS_COVERAGE_MIN}%, clover ${CLOVER})"
 
 # Coverage needs a driver; do not inherit KJ_PHP_CS_XDEBUG_MODE=off.
 run_coverage() {
-	if [ -n "$CONTAINER" ] \
-		&& command -v docker >/dev/null 2>&1 \
-		&& docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER"
-	then
-		docker exec \
-			-e XDEBUG_MODE=coverage \
-			-w /var/www/html/app \
-			"$CONTAINER" \
-			vendor/bin/phpunit --coverage-clover "$CLOVER"
-		status=$?
-		if [ "$status" -ne 0 ]; then
-			return "$status"
-		fi
-		docker exec \
-			-w /var/www/html/app \
-			"$CONTAINER" \
-			"$CHECKER" "$CLOVER" "$KJ_PHP_CS_COVERAGE_MIN"
-		return $?
+	local saved_xdebug="${KJ_PHP_CS_RUN_XDEBUG-}"
+	KJ_PHP_CS_RUN_XDEBUG=coverage
+	kj_php_cs_run "$REPO_ROOT" vendor/bin/phpunit --coverage-clover "$CLOVER"
+	local status=$?
+	if [ -n "$saved_xdebug" ]; then
+		KJ_PHP_CS_RUN_XDEBUG="$saved_xdebug"
+	else
+		unset KJ_PHP_CS_RUN_XDEBUG
 	fi
-
-	if [ -x "$REPO_ROOT/vendor/bin/phpunit" ] && [ -x "$REPO_ROOT/$CHECKER" ]; then
-		(
-			cd "$REPO_ROOT" \
-				&& XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover "$CLOVER" \
-				&& "./$CHECKER" "$CLOVER" "$KJ_PHP_CS_COVERAGE_MIN"
-		)
-		return $?
+	if [ "$status" -ne 0 ]; then
+		return "$status"
 	fi
-
-	return 127
+	kj_php_cs_run "$REPO_ROOT" "$CHECKER" "$CLOVER" "$KJ_PHP_CS_COVERAGE_MIN"
 }
 
 run_coverage

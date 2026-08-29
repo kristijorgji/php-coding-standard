@@ -27,7 +27,7 @@ fi
 ENV_FILE="$REPO_ROOT/.kj-php-coding-standard.env"
 if [ ! -f "$ENV_FILE" ]; then
 	echo "ERROR: Missing $ENV_FILE"
-	echo "Create it with KJ_PHP_CS_HOOKS and KJ_PHP_CS_DOCKER_CONTAINER (see package README)."
+	echo "Create it with KJ_PHP_CS_HOOKS (see package README)."
 	exit 1
 fi
 

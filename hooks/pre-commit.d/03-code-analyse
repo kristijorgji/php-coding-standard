@@ -10,40 +10,20 @@ REPO_ROOT="$(cd "$HOOK_DIR/../../../../.." && pwd)"
 source "$HOOK_DIR/../lib/kj-php-cs-env.sh"
 kj_php_cs_load_env "$REPO_ROOT"
 
-STAGED_APP_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^app/.*\.php$' || true)
+SRC_PREFIX="${KJ_PHP_CS_RELATED_SRC_PREFIX:-app}"
+SRC_PREFIX="${SRC_PREFIX%/}"
+
+STAGED_APP_PHP=$(git diff --cached --name-only --diff-filter=ACM | grep -E "^${SRC_PREFIX}/.*\\.php$" || true)
 
 if [ -z "$STAGED_APP_PHP" ]; then
 	exit 0
 fi
 
-echo "Running PHPStan (composer code-analyse) for staged app PHP..."
+echo "Running PHPStan (composer code-analyse) for staged ${SRC_PREFIX} PHP..."
 
 CONTAINER="${KJ_PHP_CS_DOCKER_CONTAINER:-}"
 
-run_phpstan() {
-	kj_php_cs_docker_exec "$REPO_ROOT" composer code-analyse
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		return 0
-	fi
-	if [ "$status" -ne 127 ]; then
-		return "$status"
-	fi
-
-	if [ -x "$REPO_ROOT/vendor/bin/phpstan" ]; then
-		xdebug_mode="${KJ_PHP_CS_XDEBUG_MODE-}"
-		if [ -n "$xdebug_mode" ]; then
-			(cd "$REPO_ROOT" && XDEBUG_MODE="$xdebug_mode" composer code-analyse)
-			return $?
-		fi
-		(cd "$REPO_ROOT" && composer code-analyse)
-		return $?
-	fi
-
-	return 127
-}
-
-run_phpstan
+kj_php_cs_run "$REPO_ROOT" composer code-analyse
 status=$?
 if [ "$status" -eq 0 ]; then
 	exit 0

@@ -90,6 +90,11 @@ phpdoc; FQCN only when names collide) and `DeclareStrictTypesSniff` with
 requires `@return Iterator<...>` (and similar) when the native type is
 traversable.
 
+0.3.8: pre-commit PHP runtime is configurable (`KJ_PHP_CS_PHP_RUNTIME=auto|host|docker`),
+docker workdir is `KJ_PHP_CS_DOCKER_WORKDIR` (default `/var/www/html/app`), and
+`02-phpunit-related` maps via `KJ_PHP_CS_RELATED_SRC_PREFIX` /
+`KJ_PHP_CS_RELATED_TEST_PREFIX` (Laravel `app` → `tests/unit/app` by default).
+
 Composer scripts:
 
 ```json
@@ -114,13 +119,34 @@ Keep path excludes and `<config name="php_version" value="80200"/>` in the app f
 Create `.kj-php-coding-standard.env` at the repo root:
 
 ```bash
-KJ_PHP_CS_DOCKER_CONTAINER=my-app-php
-KJ_PHP_CS_XDEBUG_MODE=off
 KJ_PHP_CS_HOOKS=01-markdownlint,02-phpunit-related,03-code-analyse
+KJ_PHP_CS_PHP_RUNTIME=auto
+# host | docker | auto (default auto: docker if the named container is running, else host)
+
+# Docker runtime (required when KJ_PHP_CS_PHP_RUNTIME=docker; optional for auto)
+KJ_PHP_CS_DOCKER_CONTAINER=my-app-php
+KJ_PHP_CS_DOCKER_WORKDIR=/var/www/html/app
+KJ_PHP_CS_XDEBUG_MODE=off
+# KJ_PHP_CS_PHP_BIN=php   # optional host PHP binary
+
+# 02-phpunit-related mapping (Laravel defaults). Libraries often use src + tests/unit:
+# KJ_PHP_CS_RELATED_SRC_PREFIX=src
+# KJ_PHP_CS_RELATED_TEST_PREFIX=tests/unit
+
 # Optional coverage gate (also requires listing 05-coverage-gate in KJ_PHP_CS_HOOKS):
 # KJ_PHP_CS_COVERAGE_MIN=80
 # KJ_PHP_CS_COVERAGE_CLOVER=build/coverage/clover.xml
 ```
+
+`KJ_PHP_CS_PHP_RUNTIME`:
+
+- `auto` (default) — `docker exec` when `KJ_PHP_CS_DOCKER_CONTAINER` is running, otherwise host `vendor/bin` / `composer`
+- `host` — never `docker exec` PHP (libraries without a PHP container)
+- `docker` — only `docker exec` at `KJ_PHP_CS_DOCKER_WORKDIR`; soft-skip if the container is down (no host fallback)
+
+`KJ_PHP_CS_DOCKER_CONTAINER` is only required for `docker` (and for `auto` to use the container). Host-only consumers can omit it.
+
+`01-markdownlint` still uses the `davidanson/markdownlint-cli2` image; it does not use the PHP runtime.
 
 Available hooks: `01-markdownlint`, `02-phpunit-related`, `03-code-analyse`,
 `04-postman-smoke-lint`, `05-coverage-gate`.
