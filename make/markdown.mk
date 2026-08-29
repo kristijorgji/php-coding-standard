@@ -6,12 +6,13 @@
 #
 # Both tools use git-tracked paths (skips vendor/). Override MD_FILES before
 # include to drop extra files (e.g. README.md if the consumer ignores it).
-# markdownlint gets --tmpfs /data/vendor so "gitignore": true does not walk
-# Composer deps on the bind mount, and --no-globs so config globs are unused.
+# markdownlint turns off gitignore walking (MD_FILES is already from git) and
+# hides vendor/ with tmpfs so Docker does not scan Composer deps.
 
 PRETTIER_VERSION ?= 3.5.3
 ML_VERSION ?= v0.17.2
 MD_FILES ?= $(shell git ls-files -- '*.md')
+KJ_PHP_CS_MAKE_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: lint-markdown fix-markdown
 
@@ -20,8 +21,7 @@ lint-markdown:
 	@echo "# markdownlint-cli2"
 	@echo "################################################################################"
 	@if [ -z "$(MD_FILES)" ]; then exit 0; fi
-	@docker run --rm -v $(PWD):/data -w /data --tmpfs /data/vendor \
-		davidanson/markdownlint-cli2:$(ML_VERSION) --no-globs $(MD_FILES)
+	@$(KJ_PHP_CS_MAKE_DIR)/run-markdownlint.sh davidanson/markdownlint-cli2:$(ML_VERSION) -- $(MD_FILES)
 
 fix-markdown:
 	@echo "################################################################################"
@@ -39,5 +39,4 @@ fix-markdown:
 	@echo "################################################################################"
 	@echo "# markdownlint-cli2 --fix"
 	@echo "################################################################################"
-	@docker run --rm -v $(PWD):/data -w /data --tmpfs /data/vendor \
-		davidanson/markdownlint-cli2:$(ML_VERSION) --fix --no-globs $(MD_FILES)
+	@$(KJ_PHP_CS_MAKE_DIR)/run-markdownlint.sh davidanson/markdownlint-cli2:$(ML_VERSION) --fix -- $(MD_FILES)
